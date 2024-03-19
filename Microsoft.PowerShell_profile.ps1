@@ -79,3 +79,24 @@ function prompt {
 	([net.dns]::GetHostName()) + " $pwd> "
 }
 Import-Module (Join-Path $ScriptDir "dbgutil.psm1") -Force -DisableNameChecking
+
+
+
+# check if host-name is mgoel-desk2 then set the path to the dev folder
+$hostName = [System.Net.Dns]::GetHostName()
+if ($hostName -eq "mgoel-desk2") {
+	$devPath = "E:\mgd2off1\src"
+	Set-Location $devPath
+	# source init.ps1 if it exists
+	$initPath = Join-Path $devPath "init.ps1"
+	if (Test-Path $initPath) {
+		. $initPath
+	}
+	#import aiHelper.psm1 , if it exists
+	$aiHelperPath = Join-Path $devPath "word/tools/automation/aiHelper.psm1"
+	if (Test-Path $aiHelperPath) {
+		Import-Module $aiHelperPath -Force -DisableNameChecking
+	}
+}
+
+# New-Variable -Name "GenericOfficeBuildShell" -Visibility Public -Scope Global -Force
