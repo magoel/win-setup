@@ -26,6 +26,7 @@ function script:Install-Chocolatey
 		Install-Chocolatey
 #>
 		if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+			Write-Host "Installing Chocolatey"
 			[System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;
 			invoke-expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 		}
@@ -50,6 +51,7 @@ function script:Install-Sysinternals
 #>
 	# check if sysinternals is installed
 	if (-not (Get-Command pslist -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing Sysinternals"
 		choco install sysinternals -y
 		refreshenv
 	}
@@ -72,6 +74,7 @@ function script:Install-Vim
 #>
 	# check if vim is installed
 	if (-not (Get-Command vim -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing Vim"
 		choco install vim -y
 		refreshenv
 	}
@@ -94,6 +97,7 @@ function script:Install-Pwsh
 #>
 	# check if pwsh is installed
 	if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing PowerShell"
 		winget install Microsoft.PowerShell
 		refreshenv
 	}
@@ -116,6 +120,7 @@ function script:Install-GitHubCli
 #>
 	# check if gh is installed
 	if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing GitHub CLI"
 		winget install GitHub.cli
 		refreshenv
 		gh auth login
@@ -137,16 +142,28 @@ function script:Install-VimSetup
 		.EXAMPLE
 		Install-VimSetup
 #>
+		Write-Host "Installing Vim Setup"
 		pushd ${Env:UserProfile}
 		rm -Force ${Env:UserProfile}/_vimrc -ErrorAction SilentlyContinue
 		rm -Force -Recurse ${Env:UserProfile}/_vim -ErrorAction SilentlyContinue
 		rm -Force -Recurse ${Env:UserProfile}/.vim -ErrorAction SilentlyContinue
-		gh repo clone magoel/vimsetup 
+		if (Test-Path ${Env:UserProfile}/vimsetup) {
+			pushd ${Env:UserProfile}/vimsetup
+			git pull
+			popd
+		} else {
+			gh repo clone magoel/vimsetup
+		}
 		mkdir -Force ${Env:UserProfile}/vim-swap -ErrorAction SilentlyContinue
 		# create a symbolic link to the vim setup
 		New-Item -ItemType SymbolicLink -Path ${Env:UserProfile}/_vim -Target ${Env:UserProfile}/vimsetup/vimfiles
+		# check if vundle already exists, pull the latest else clone it
+		if (Test-Path ${Env:UserProfile}/_vim/bundle/Vundle.vim) {
+			rm -Force -Recurse ${Env:UserProfile}/_vim/bundle/Vundle.vim
+		}
 		gh repo clone VundleVim/Vundle.vim ${Env:UserProfile}/_vim/bundle/Vundle.vim
 		vim -c ":PluginInstall" -c ":qa!"
+		popd
 }
 
 
@@ -163,6 +180,7 @@ function script:Install-Jq
 #>
 	# check if jq is installed
 	if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing jq"
 		choco install jq -y
 		refreshenv
 	}
@@ -185,6 +203,7 @@ function script:Install-Make
 #>
 	# check if make is installed
 	if (-not (Get-Command make -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing make"
 		choco install make -y
 		refreshenv
 	}
@@ -249,6 +268,7 @@ function script:Install-Fzf
 #>
 	# check if fzf is installed
 	if (-not (Get-Command fzf -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing fzf"
 		winget install fzf
 		Install-Module -Name PSFzf -Scope CurrentUser -Force
 		# Enable-PsFzfAliases
@@ -274,6 +294,7 @@ function script:Install-OpenSSH
 #>
 	# check if openssh is installed
 	if (-not (Get-Command sshd -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing OpenSSH"
 		Add-WindowsCapability -Online -Name OpenSSH.Server -ErrorAction SilentlyContinue
 		# Get-WindowsCapability -Online | ? Name -like 'OpenSSH*'
 		Get-NetFirewallRule -Name *OpenSSH-Server* -ErrorAction SilentlyContinue | Enable-NetFirewallRuleA
@@ -313,6 +334,7 @@ function script:Make-ProfileLink
 	$rc = Join-Path ${ScriptDir} Microsoft.PowerShell_profile.ps1
 	$TargetPath = Join-Path $PSHOME profile.ps1
 	if (-not (Test-Path $TargetPath)) {
+		Write-Host "Creating profile link"
 		New-Item -ItemType SymbolicLink -Path $TargetPath -Value $rc
 	}
 	else {
@@ -320,8 +342,31 @@ function script:Make-ProfileLink
 	}
 }
 
+#function to install PSReadline module
+function script:Install-PSReadline
+{
+	<#
+		.SYNOPSIS
+		Install PSReadline
+		.DESCRIPTION
+		Install PSReadline
+		.EXAMPLE
+		Install-PSReadline
+#>
+	# check if PSReadline is installed
+	if (-not (Get-Module -Name PSReadline -ListAvailable -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing PSReadline"
+		Install-Module PSReadLine -Force -AllowPrerelease -SkipPublisherCheck
+		refreshenv
+	}
+	else {
+		Write-Host "PSReadline is already installed"
+	}
+}
+
 
 script:Install-Pwsh
+script:Install-PSReadline
 script:Install-Chocolatey
 script:Install-Sysinternals
 script:Install-GitHubCli
@@ -330,5 +375,5 @@ script:Install-VimSetup
 script:Install-Jq
 script:Install-Make
 script:Install-Fzf
-script:Install-OpenSSH
+# script:Install-OpenSSH
 script:Make-ProfileLink

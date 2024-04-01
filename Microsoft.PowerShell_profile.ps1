@@ -82,20 +82,29 @@ Import-Module (Join-Path $ScriptDir "dbgutil.psm1") -Force -DisableNameChecking
 
 
 
-# check if host-name is mgoel-desk2 then set the path to the dev folder
+# $IsConsoleHost = $Host.Name -eq 'ConsoleHost'
 $hostName = [System.Net.Dns]::GetHostName()
-if ($hostName -eq "mgoel-desk2") {
+if (($hostName -eq "mgoel-desk2")) {
+	$IsConsoleHost = $false
+	if (-not $IsConsoleHost) {
+		return
+	}
 	$devPath = "E:\mgd2off1\src"
 	Set-Location $devPath
-	# source init.ps1 if it exists
 	$initPath = Join-Path $devPath "init.ps1"
 	if (Test-Path $initPath) {
 		. $initPath
 	}
-	#import aiHelper.psm1 , if it exists
 	$aiHelperPath = Join-Path $devPath "word/tools/automation/aiHelper.psm1"
 	if (Test-Path $aiHelperPath) {
 		Import-Module $aiHelperPath -Force -DisableNameChecking
+		$env:PSModulePath = $env:PSModulePath + ";${devPath}\word\tools\automation"
+	}
+} elseif (($hostName -eq "mgoel-laptop")) {
+	$aiHelperPath = "${env:USERPROFILE}/repos/mgoel/aiHelper.psm1"
+	if (Test-Path $aiHelperPath) {
+		Import-Module $aiHelperPath -Force -DisableNameChecking
+		$env:PSModulePath = $env:PSModulePath + ";$aiHelperPath"
 	}
 }
 
