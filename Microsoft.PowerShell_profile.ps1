@@ -81,6 +81,11 @@ function prompt {
 Import-Module (Join-Path $ScriptDir "dbgutil.psm1") -Force -DisableNameChecking
 
 
+# create symlink for the to wsl root
+# if (-not (Test-Path "${env:USERPROFILE}\wslroot") -and (Test-Path "Microsoft.PowerShell.Core\FileSystem::\\wsl.localhost\Ubuntu\")) {
+# 	echo "Creating symlink for wsl root"
+# 	New-Item -ItemType SymbolicLink -Path "${env:USERPROFILE}\wslroot" -Value "Microsoft.PowerShell.Core\FileSystem::\\wsl.localhost\Ubuntu\" -Force
+# }
 
 # $IsConsoleHost = $Host.Name -eq 'ConsoleHost'
 $hostName = [System.Net.Dns]::GetHostName()
@@ -107,5 +112,7 @@ if (($hostName -eq "mgoel-desk2")) {
 		$env:PSModulePath = $env:PSModulePath + ";$aiHelperPath"
 	}
 }
+
+$env:wslroot = "Microsoft.PowerShell.Core\FileSystem::\\wsl.localhost\Ubuntu\"
 
 # New-Variable -Name "GenericOfficeBuildShell" -Visibility Public -Scope Global -Force
