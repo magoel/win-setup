@@ -89,7 +89,7 @@ Import-Module (Join-Path $ScriptDir "dbgutil.psm1") -Force -DisableNameChecking
 
 # $IsConsoleHost = $Host.Name -eq 'ConsoleHost'
 $hostName = [System.Net.Dns]::GetHostName()
-if (($hostName -eq "mgoel-desk2")) {
+if ($hostName -eq "mgoel-desk22222222") {
 	$IsConsoleHost = $false
 	if (-not $IsConsoleHost) {
 		return

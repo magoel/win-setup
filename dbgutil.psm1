@@ -14,7 +14,7 @@ function Override-Feature{
 				[string]$Value
 			 )
 		#New-Alias -Name "Feature-Override" -Value \\ocentral\tools\experimentation\FeatureOverride.ps1
-		Write-Output "Feature-Override $FullGateName $Value"
+		# Write-Output "Feature-Override $FullGateName $Value"
 		Get-Item -Path HKCU:\Software\Microsoft\Office\16.0\Common\ExperimentEcs\Overrides  | Set-ItemProperty -Name $FullGateName -Value $Value;
 }
 
