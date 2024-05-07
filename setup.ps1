@@ -83,6 +83,27 @@ function script:Install-Vim
 	}
 }
 
+function script:Install-Neovim
+{
+	<#
+		.SYNOPSIS
+		Install Neovim
+		.DESCRIPTION
+		Install Neovim
+		.EXAMPLE
+		Install-Neovim
+#>
+	# check if nvim is installed
+	if (-not (Get-Command nvim -ErrorAction SilentlyContinue)) {
+		Write-Host "Installing Neovim"
+		choco install neovim -y
+		refreshenv
+	}
+	else {
+		Write-Host "Neovim is already installed"
+	}
+}
+
 
 # write a function to install pwsh
 function script:Install-Pwsh
@@ -163,6 +184,38 @@ function script:Install-VimSetup
 		}
 		gh repo clone VundleVim/Vundle.vim ${Env:UserProfile}/_vim/bundle/Vundle.vim
 		vim -c ":PluginInstall" -c ":qa!"
+		popd
+}
+
+function script:Install-NeovimSetup
+{
+	<#
+		.SYNOPSIS
+		Install Neovim Setup
+		.DESCRIPTION
+		Install Neovim Setup
+		.EXAMPLE
+		Install-NeovimSetup
+#>
+		Write-Host "Installing Neovim Setup"
+		pushd ${Env:UserProfile}
+		rm -Force ${Env:LOCALAPPDATA}/nvim -ErrorAction SilentlyContinue
+		if (Test-Path ${Env:UserProfile}/nvimsetup) {
+			pushd ${Env:UserProfile}/nvimsetup
+			git pull
+			popd
+		} else {
+			gh repo clone magoel/nvimsetup
+		}
+		mkdir -Force ${Env:UserProfile}/vim-swap -ErrorAction SilentlyContinue
+		# create a symbolic link to the nvim setup
+		New-Item -ItemType SymbolicLink -Path ${Env:LOCALAPPDATA}/nvim -Target ${Env:UserProfile}/nvimsetup/nvimfiles
+		# check if vundle already exists, pull the latest else clone it
+		if (Test-Path ${Env:LOCALAPPDATA}/nvim/bundle/Vundle.vim) {
+			rm -Force -Recurse ${Env:LOCALAPPDATA}/nvim/bundle/Vundle.vim
+		}
+		gh repo clone VundleVim/Vundle.vim ${Env:LOCALAPPDATA}/nvim/bundle/Vundle.vim
+		nvim -c ":PluginInstall" -c ":qa!"
 		popd
 }
 
@@ -372,6 +425,8 @@ script:Install-Sysinternals
 script:Install-GitHubCli
 script:Install-Vim
 script:Install-VimSetup
+script:Install-Neovim
+script:Install-NeovimSetup
 script:Install-Jq
 script:Install-Make
 script:Install-Fzf
